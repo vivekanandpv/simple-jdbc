@@ -23,81 +23,216 @@ public class Repository {
 
         String query = "SELECT * FROM public.persons";
 
-        Statement stmt = getConnection().createStatement();
-        ResultSet results = stmt.executeQuery(query);
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet results = null;
 
-        while (results.next()) {
-            Person person = new Person();
+        try {
+            connection = getConnection();
+            statement = connection.createStatement();
+            results = statement.executeQuery(query);
 
-            person.setPersonId(results.getInt("person_id"));
-            person.setFirstName(results.getString("first_name"));
-            person.setLastName(results.getString("last_name"));
-            person.setEmail(results.getString("email"));
-            person.setCity(results.getString("city"));
+            while (results.next()) {
+                Person person = new Person();
 
-            persons.add(person);
+                person.setPersonId(results.getInt("person_id"));
+                person.setFirstName(results.getString("first_name"));
+                person.setLastName(results.getString("last_name"));
+                person.setEmail(results.getString("email"));
+                person.setCity(results.getString("city"));
+
+                persons.add(person);
+            }
+
+            return persons;
+        } finally {
+            //  Resource finalization
+            try {
+                if (results != null) {
+                    //  every close() in turn can throw an exception!
+                    results.close();
+                }
+            } catch (Exception e) {
+                //  this is provisional, replace with proper strategy
+                e.printStackTrace();
+            }
+
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        return persons;
     }
 
     public static Person getPerson(int id) throws ClassNotFoundException, SQLException {
         String query = "SELECT * FROM public.persons WHERE id = ?";
 
-        PreparedStatement pstmt = getConnection().prepareStatement(query);
-        pstmt.setInt(1, id);
-        ResultSet results = pstmt.executeQuery();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet results = null;
 
-        while (results.next()) {
-            Person person = new Person();
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, id);
+            results = preparedStatement.executeQuery();
 
-            person.setPersonId(results.getInt("person_id"));
-            person.setFirstName(results.getString("first_name"));
-            person.setLastName(results.getString("last_name"));
-            person.setEmail(results.getString("email"));
-            person.setCity(results.getString("city"));
+            while (results.next()) {
+                Person person = new Person();
 
-            return person;
+                person.setPersonId(results.getInt("person_id"));
+                person.setFirstName(results.getString("first_name"));
+                person.setLastName(results.getString("last_name"));
+                person.setEmail(results.getString("email"));
+                person.setCity(results.getString("city"));
+
+                return person;
+            }
+
+            throw new RuntimeException("Person doesn't exist"); // customer doesn't exist
+        } finally {
+            try {
+                if (results != null) {
+                    results.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
-        throw new RuntimeException("Person doesn't exist"); // customer doesn't exist
+
+
 
     }
 
     public static void createPerson(Person person) throws SQLException, ClassNotFoundException {
         String sql = "INSERT INTO public.persons(person_id, first_name, last_name, email, city) VALUES (?, ?, ?, ?, ?)";
 
-        PreparedStatement pstmt = getConnection().prepareStatement(sql);
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
 
-        // replace these ?
-        pstmt.setInt(1, person.getPersonId());
-        pstmt.setString(2, person.getFirstName());
-        pstmt.setString(3, person.getLastName());
-        pstmt.setString(4, person.getEmail());
-        pstmt.setString(5, person.getCity());
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(sql);
 
-        pstmt.execute();
+            preparedStatement.setInt(1, person.getPersonId());
+            preparedStatement.setString(2, person.getFirstName());
+            preparedStatement.setString(3, person.getLastName());
+            preparedStatement.setString(4, person.getEmail());
+            preparedStatement.setString(5, person.getCity());
+
+            preparedStatement.execute();
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void updatePerson(Person person) throws ClassNotFoundException, SQLException {
 
         String query = "UPDATE public.persons SET first_name=?, last_name=?, email=?, city=? WHERE id = ?";
 
-        PreparedStatement pstmt = getConnection().prepareStatement(query);
-        pstmt.setString(1, person.getFirstName());
-        pstmt.setString(2, person.getLastName());
-        pstmt.setString(3, person.getEmail());
-        pstmt.setString(4, person.getCity());
-        pstmt.setInt(5, person.getPersonId());
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
 
-        pstmt.execute();
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+
+            preparedStatement.setString(1, person.getFirstName());
+            preparedStatement.setString(2, person.getLastName());
+            preparedStatement.setString(3, person.getEmail());
+            preparedStatement.setString(4, person.getCity());
+            preparedStatement.setInt(5, person.getPersonId());
+
+            preparedStatement.execute();
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void deletePerson(int id) throws ClassNotFoundException, SQLException {
         String query = "DELETE FROM public.persons WHERE id = ?";
 
-        PreparedStatement pstmt = getConnection().prepareStatement(query);
-        pstmt.setInt(1, id);
-        pstmt.execute();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(query);
+
+            preparedStatement.setInt(1, id);
+            preparedStatement.execute();
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
